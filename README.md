@@ -90,6 +90,10 @@ Depois correr a imagem:
 docker run --device /dev/video0 -e mac=$(ip link show wlp2s0 | awk '/ether/ {print $2}') [IMAGEID da imagem vista em cima]
 ```
 
+# Erros Comuns
+
+De vez em quando o ServersEngine.py pode dar um erro na inicialização, fechar e voltar a correr normalmente resolve o problema.
+
 
 Créditos:
 
