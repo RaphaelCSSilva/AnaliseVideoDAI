@@ -2,6 +2,8 @@
 
 Parte de análise de vídeo do projeto de DAI 2019/2020 MIEGSI UMinho.
 
+Parte da WebApp: https://github.com/NunoVelosoMIEGSI/prisontech
+
 # Instalação
 
 Nota: Python versão 3.6 foi usada neste trabalho, sendo o python 3.5-3.7 requerido pelo tensorflow.
