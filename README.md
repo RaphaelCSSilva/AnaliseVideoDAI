@@ -71,7 +71,7 @@ Linux:
 python3 client.py --server-ip <ip da máquina a correr o servidor (ServersEngine)>
 ```
 
-Com a docker image:
+Com a docker image (correr em Linux):
 
 Primeiro dar pull da docker image:
 
@@ -79,10 +79,15 @@ Primeiro dar pull da docker image:
 docker pull dai1920/imagezmq
 ```
 
+Verificar o id da imagem (IMAGE ID):
+```
+docker images
+```
+
 Depois correr a imagem:
 
 ```
-
+docker run --device /dev/video0 -e mac=$(ip link show wlp2s0 | awk '/ether/ {print $2}') [IMAGEID da imagem vista em cima]
 ```
 
 
