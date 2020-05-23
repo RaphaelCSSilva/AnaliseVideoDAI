@@ -12,10 +12,10 @@ def main():
 
     URL_AREAS = "http://" + ip + ":8181/services/eventos/api/areas"
 
+    bearer_token = ""
+
     headers = {
-        'Authorization': 'Bearer eyJhbGciOiJIUzUxMiJ9'
-                         '.eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOLFJPTEVfVVNFUiIsImV4cCI6MTU5MDE0ODUzM30'
-                         '.MDFoVukkynl8xxdR7lzhYSNod6PvJSiCvGhpCyuwpUgSfS7hYiD37yUfIN8T_S_lPh11xUEo4TiLTkqsXxrqBg'}
+        'Authorization': bearer_token}
 
     areas_json = requests.get(URL_AREAS, headers=headers).json()
 

@@ -52,23 +52,26 @@ args = vars(ap.parse_args())
 
 
 def detectionAlg(areas_json, ip):
+
+    bearer_token = "Bearer eyJhbGciOiJIUzUxMiJ9" \
+                   ".eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOLFJPTEVfVVNFUiIsImV4cCI6MTU5Mjc3NzM3OX0" \
+                   ".TrBopLe1_Qh3tQFIUDYn_R_0oX-3aqCehUDsLo1poUcvkfb5oFQYBdD7-Ht4P_JPGBJdV41K4LjUOZ4dXxxyOw"
+
     headersGet = {
-        'Authorization': "Bearer eyJhbGciOiJIUzUxMiJ9"
-                         ".eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOLFJPTEVfVVNFUiIsImV4cCI6MTU5MDE0ODUzM30"
-                         ".MDFoVukkynl8xxdR7lzhYSNod6PvJSiCvGhpCyuwpUgSfS7hYiD37yUfIN8T_S_lPh11xUEo4TiLTkqsXxrqBg"
+        'Authorization': bearer_token
     }
 
     headersPost = {
         'Content-Type': "application/json",
-        'Authorization': "Bearer eyJhbGciOiJIUzUxMiJ9"
-                         ".eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOLFJPTEVfVVNFUiIsImV4cCI6MTU5MDE0ODUzM30"
-                         ".MDFoVukkynl8xxdR7lzhYSNod6PvJSiCvGhpCyuwpUgSfS7hYiD37yUfIN8T_S_lPh11xUEo4TiLTkqsXxrqBg",
+        'Authorization': bearer_token,
         'cache-control': "no-cache",
     }
 
-    is_detecting = False
+    first_detection = False
 
-    fps = get_fps_from_camera()
+    #fps = get_fps_from_camera()
+    fps = 7
+
 
     buffer = int(round(fps * args["buffer_time"]))
 
@@ -110,6 +113,8 @@ def detectionAlg(areas_json, ip):
     mW = 1
     mH = 1
 
+    firstConnection = True
+
     print("[INFO] detecting: persons...")
 
     updateConsecFrames = True
@@ -147,7 +152,7 @@ def detectionAlg(areas_json, ip):
 
                 # if a device is not in the last active dictionary then it means
                 # that its a newly connected device
-                if rpiName not in lastActive.keys():
+                if firstConnection:
 
                     print("[INFO] receiving data from {}...".format(rpiName))
 
@@ -191,18 +196,20 @@ def detectionAlg(areas_json, ip):
 
                     numPessoasPerm = area_json['numPessoasPerm']
 
+                    firstConnection = False
+
                 # record the last active time for the device from which we just
                 # received a frame
-                lastActive[rpiName] = datetime.datetime.now()
+                #lastActive[rpiName] = datetime.datetime.now()
 
                 # for all the frames that are extracted from input video
 
                 frame = cv2.resize(frame, (800, 600))
 
-                input_frame = frame
+                #input_frame = frame
 
                 # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
-                image_np_expanded = np.expand_dims(input_frame, axis=0)
+                image_np_expanded = np.expand_dims(frame, axis=0)
 
                 # Actual detection.
                 (boxes, scores, classes, num) = sess.run(
@@ -216,7 +223,7 @@ def detectionAlg(areas_json, ip):
 
                     # Visualization of the results of a detection.
                     counter, csv_line, the_result = vis_util.visualize_boxes_and_labels_on_image_array(-1,
-                                                                                                       input_frame,
+                                                                                                       frame,
                                                                                                        1,
                                                                                                        is_color_recognition_enabled,
                                                                                                        np.squeeze(
@@ -231,29 +238,44 @@ def detectionAlg(areas_json, ip):
                                                                                                        use_normalized_coordinates=True,
                                                                                                        line_thickness=4)
                     if len(the_result) == 0:
-                        cv2.putText(input_frame, "...", (10, 35), font, 0.8, (0, 255, 255), 2, cv2.FONT_HERSHEY_SIMPLEX)
+                        cv2.putText(frame, "...", (10, 35), font, 0.8, (0, 255, 255), 2, cv2.FONT_HERSHEY_SIMPLEX)
                     else:
-                        cv2.putText(input_frame, the_result, (10, 35), font, 0.8, (0, 255, 255), 2,
+                        cv2.putText(frame, the_result, (10, 35), font, 0.8, (0, 255, 255), 2,
                                     cv2.FONT_HERSHEY_SIMPLEX)
 
                     tipo_detetado = the_result[1:7]
 
-                    try:
+                    # try:
+                    #     numPessoasDet = int(float(the_result[11:12]))
+                    #     print(the_result[11:12])
+                    # except ValueError:
+                    #     print("numPessoasDet deu ValueError")
+
+                    if len(the_result) != 0:
                         numPessoasDet = int(float(the_result[11:12]))
                         print(the_result[11:12])
-                    except ValueError:
-                        print("numPessoasDet deu ValueError")
+                    else:
+                        numPessoasDet = 0
+                        print("Nao houve detecoes")
+                        
+                    print(tipo_detetado)
 
                     if tipo_detetado == 'person':
                         consecFrames = 0
 
                         # if we are not already recording, start recording
                         if not kcw.recording:
-                            timestamp = datetime.datetime.now(pytz.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-                            p = "{}/{}.webm".format(output, timestamp)
-                            kcw.start(p, cv2.VideoWriter_fourcc(*'VP80'), fps)
+                            timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H_%M_%SZ")
+                            p = "{}/{}.mp4".format(output, timestamp)
+                            kcw.start(p, cv2.VideoWriter_fourcc(*'mp4v'), fps)
 
-                        if tipo_evento_json['descricao'] != "" and is_detecting == False:
+                            timestamp = timestamp.replace("_", ":")
+
+                        print(tipo_evento_json['descricao'])
+
+                        print("first_detection = {}".format(first_detection))
+
+                        if tipo_evento_json['descricao'] != "" and first_detection == False:
                             if tipo_evento_json['descricao'] == "eq":
                                 if numPessoasDet == numPessoasPerm:
                                     print("Somos {}!".format(numPessoasPerm))
@@ -278,7 +300,7 @@ def detectionAlg(areas_json, ip):
                                         "numPessoasDet": numPessoasDet,
                                         "dataHoraInicio": dataHoraInicio,
                                         "dataHoraFim": dataHoraFim,
-                                        "path": "http://" + ip + ":8000/" + current_video_name,
+                                        "path": "http://" + ip + ":5580/" + current_video_name,
                                         "formato": "webm",
                                         "area": area_json,
                                         "camara": camara_json,
@@ -314,7 +336,7 @@ def detectionAlg(areas_json, ip):
                                         "numPessoasDet": numPessoasDet,
                                         "dataHoraInicio": dataHoraInicio,
                                         "dataHoraFim": dataHoraFim,
-                                        "path": "http://" + ip + ":8000/" + current_video_name,
+                                        "path": "http://" + ip + ":5580/" + current_video_name,
                                         "formato": "webm",
                                         "area": area_json,
                                         "camara": camara_json,
@@ -325,33 +347,35 @@ def detectionAlg(areas_json, ip):
 
                                     response = requests.post(url_eventos, data=dataToSend, headers=headersPost).json()
 
-                    is_detecting = True
+                    first_detection = True
 
                 # update the new frame in the frame dictionary
-                frameDict[rpiName] = frame
+                #frameDict[rpiName] = frame
 
                 # build a montage using images in the frame dictionary
                 montages = build_montages(frameDict.values(), (800, 600), (mW, mH))
 
                 # if current time *minus* last time when the active device check
                 # was made is greater than the threshold set then do a check
-                if (datetime.datetime.now() - lastActiveCheck).seconds > ACTIVE_CHECK_SECONDS:
-                    # loop over all previously active devices
-                    for (rpiName, ts) in list(lastActive.items()):
-                        # remove the RPi from the last active and frame
-                        # dictionaries if the device hasn't been active recently
-                        if (datetime.datetime.now() - ts).seconds > ACTIVE_CHECK_SECONDS:
-                            print("[INFO] lost connection to {}".format(rpiName))
-                            lastActive.pop(rpiName)
-                            frameDict.pop(rpiName)
-
-                    # set the last active check time as current time
-                    lastActiveCheck = datetime.datetime.now()
+                # if (datetime.datetime.now() - lastActiveCheck).seconds > ACTIVE_CHECK_SECONDS:
+                #     # loop over all previously active devices
+                #     for (rpiName, ts) in list(lastActive.items()):
+                #         # remove the RPi from the last active and frame
+                #         # dictionaries if the device hasn't been active recently
+                #         if (datetime.datetime.now() - ts).seconds > ACTIVE_CHECK_SECONDS:
+                #             print("[INFO] lost connection to {}".format(rpiName))
+                #             lastActive.pop(rpiName)
+                #             frameDict.pop(rpiName)
+                #
+                #     # set the last active check time as current time
+                #     lastActiveCheck = datetime.datetime.now()
 
                 # display the montage(s) on the screen
-                for (i, montage) in enumerate(montages):
-                    cv2.imshow("Home pet location monitor ({})".format(i),
-                               montage)
+                # for (i, montage) in enumerate(montages):
+                #     cv2.imshow("Home pet location monitor ({})".format(i),
+                #                montage)
+
+                cv2.imshow("Cam " + rpiName, frame)
 
                 # otherwise, no action has taken place in this frame, so
                 # increment the number of consecutive frames that contain
@@ -370,13 +394,17 @@ def detectionAlg(areas_json, ip):
                     novaDataHoraFim = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
                     response['dataHoraFim'] = novaDataHoraFim
 
-                    dataToSend = json.dumps(response)
+                    #dataToSend = json.dumps(response)
 
-                    response = requests.put(url_eventos, data=dataToSend, headers=headersPost).json()
+                    dataToSend = json.dumps(response, indent=4, sort_keys=True, default=str)
 
-                    print(response)
+                    responseStopped = requests.put(url_eventos, data=dataToSend, headers=headersPost).json()
 
-                    is_detecting = False
+                    print(responseStopped)
+
+                    first_detection = False
+
+                    consecFrames = 0
 
                 # cv2.imshow('object counting', input_frame)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -390,10 +418,16 @@ def detectionAlg(areas_json, ip):
                 response['dataHoraFim'] = novaDataHoraFim
                 response['descricao'] += ' Este evento terminou de forma inesperada! (Erro)'
 
-                dataToSend = json.dumps(response)
+                #dataToSend = json.dumps(response)
 
-                response = requests.put(url_eventos, data=dataToSend, headers=headersPost).json()
+                dataToSend = json.dumps(response, indent=4, sort_keys=True, default=str)
 
-                print(response)
+                responseError = requests.put(url_eventos, data=dataToSend, headers=headersPost).json()
 
-                is_detecting = False
+                print(responseError)
+
+                first_detection = False
+
+                consecFrames = 0
+
+                cv2.destroyAllWindows()
