@@ -4,6 +4,10 @@ Parte de análise de vídeo do projeto de DAI 2019/2020 MIEGSI UMinho.
 
 Parte da WebApp: https://github.com/NunoVelosoMIEGSI/prisontech
 
+# Preview
+
+Ainda estamos a realizar o vídeo demonstrativo. 
+
 # Instalação
 
 Nota: Python versão 3.6 foi usada neste trabalho, sendo o python 3.5-3.7 requerido pelo tensorflow.
@@ -87,7 +91,7 @@ docker images
 Depois correr a imagem:
 
 ```
-docker run --device /dev/video0 -e mac=$(ip link show wlp2s0 | awk '/ether/ {print $2}') [IMAGEID da imagem vista em cima]
+docker run --device /dev/video0 -e mac=$(ip link show [INTERFACE DE REDE A UTILIZAR] | awk '/ether/ {print $2}') [IMAGEID da imagem vista em cima]
 ```
 
 # Erros Comuns
