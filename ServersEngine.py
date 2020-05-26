@@ -4,7 +4,7 @@ import requests
 import json
 from datetime import datetime
 
-from real_time_counting_targeted_object_teste_zmq import detectionAlg
+from algoritmoAnalise import detectionAlg
 
 
 def main():
@@ -12,7 +12,9 @@ def main():
 
     URL_AREAS = "http://" + ip + ":8181/services/eventos/api/areas"
 
-    bearer_token = ""
+    bearer_token = "eyJhbGciOiJIUzUxMiJ9" \
+                   ".eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOLFJPTEVfVVNFUiIsImV4cCI6MTU5Mjc3NzM3OX0" \
+                   ".TrBopLe1_Qh3tQFIUDYn_R_0oX-3aqCehUDsLo1poUcvkfb5oFQYBdD7-Ht4P_JPGBJdV41K4LjUOZ4dXxxyOw "
 
     headers = {
         'Authorization': bearer_token}

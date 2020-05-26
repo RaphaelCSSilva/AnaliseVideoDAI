@@ -55,7 +55,7 @@ def detectionAlg(areas_json, ip):
 
     bearer_token = "Bearer eyJhbGciOiJIUzUxMiJ9" \
                    ".eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOLFJPTEVfVVNFUiIsImV4cCI6MTU5Mjc3NzM3OX0" \
-                   ".TrBopLe1_Qh3tQFIUDYn_R_0oX-3aqCehUDsLo1poUcvkfb5oFQYBdD7-Ht4P_JPGBJdV41K4LjUOZ4dXxxyOw"
+                   ".TrBopLe1_Qh3tQFIUDYn_R_0oX-3aqCehUDsLo1poUcvkfb5oFQYBdD7-Ht4P_JPGBJdV41K4LjUOZ4dXxxyOw "
 
     headersGet = {
         'Authorization': bearer_token
@@ -67,7 +67,7 @@ def detectionAlg(areas_json, ip):
         'cache-control': "no-cache",
     }
 
-    first_detection = False
+    first_detection = True
 
     #fps = get_fps_from_camera()
     fps = 7
@@ -129,6 +129,9 @@ def detectionAlg(areas_json, ip):
     height = 0
     width = 0
 
+    pessoas_det_final = 0
+    pessoas_det_final = 0
+
     with detection_graph.as_default():
         with tf.compat.v1.Session(graph=detection_graph) as sess:
             # Definite input and output Tensors for detection_graph
@@ -165,7 +168,7 @@ def detectionAlg(areas_json, ip):
                     for i in range(len(areas_json)):
                         print(i)
                         for j in range(len(areas_json[i]['camaras'])):
-                            mac_compare = areas_json[i]['camaras'][j]['enderecoIp']
+                            mac_compare = areas_json[i]['camaras'][j]['enderecoMac']
                             if rpiName == mac_compare:
                                 id_cam = areas_json[i]['camaras'][j]['id']
 
@@ -275,7 +278,14 @@ def detectionAlg(areas_json, ip):
 
                         print("first_detection = {}".format(first_detection))
 
-                        if tipo_evento_json['descricao'] != "" and first_detection == False:
+                        if tipo_evento_json['descricao'] == "Maior":
+                            pessoas_det_final = numPessoasDet if numPessoasDet > pessoas_det_final else pessoas_det_final
+
+                        elif tipo_evento_json['descricao'] == "Menor":
+                            pessoas_det_final = numPessoasDet if numPessoasDet < pessoas_det_final else pessoas_det_final
+
+
+                        if tipo_evento_json['descricao'] != "" and first_detection:
                             if tipo_evento_json['descricao'] == "eq":
                                 if numPessoasDet == numPessoasPerm:
                                     print("Somos {}!".format(numPessoasPerm))
@@ -297,7 +307,7 @@ def detectionAlg(areas_json, ip):
                                     data = {
                                         "descricao": descricao,
                                         "numPessoasPerm": numPessoasPerm,
-                                        "numPessoasDet": numPessoasDet,
+                                        "numPessoasDet": pessoas_det_final,
                                         "dataHoraInicio": dataHoraInicio,
                                         "dataHoraFim": dataHoraFim,
                                         "path": "http://" + ip + ":5580/" + current_video_name,
@@ -333,7 +343,7 @@ def detectionAlg(areas_json, ip):
                                     data = {
                                         "descricao": descricao,
                                         "numPessoasPerm": numPessoasPerm,
-                                        "numPessoasDet": numPessoasDet,
+                                        "numPessoasDet": pessoas_det_final,
                                         "dataHoraInicio": dataHoraInicio,
                                         "dataHoraFim": dataHoraFim,
                                         "path": "http://" + ip + ":5580/" + current_video_name,
@@ -347,7 +357,7 @@ def detectionAlg(areas_json, ip):
 
                                     response = requests.post(url_eventos, data=dataToSend, headers=headersPost).json()
 
-                    first_detection = True
+                    first_detection = False
 
                 # update the new frame in the frame dictionary
                 #frameDict[rpiName] = frame
@@ -393,6 +403,8 @@ def detectionAlg(areas_json, ip):
                     print("TesteFinish")
                     novaDataHoraFim = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
                     response['dataHoraFim'] = novaDataHoraFim
+                    
+                    response['numPessoasDet'] = pessoas_det_final 
 
                     #dataToSend = json.dumps(response)
 
@@ -402,7 +414,7 @@ def detectionAlg(areas_json, ip):
 
                     print(responseStopped)
 
-                    first_detection = False
+                    first_detection = True
 
                     consecFrames = 0
 
@@ -416,6 +428,7 @@ def detectionAlg(areas_json, ip):
                 print("TesteFinish")
                 novaDataHoraFim = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
                 response['dataHoraFim'] = novaDataHoraFim
+                response['numPessoasDet'] = pessoas_det_final
                 response['descricao'] += ' Este evento terminou de forma inesperada! (Erro)'
 
                 #dataToSend = json.dumps(response)
@@ -426,7 +439,7 @@ def detectionAlg(areas_json, ip):
 
                 print(responseError)
 
-                first_detection = False
+                first_detection = True
 
                 consecFrames = 0
 
