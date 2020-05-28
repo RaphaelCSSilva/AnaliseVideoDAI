@@ -131,9 +131,8 @@ def detectionAlg(areas_json, ip, token):
     width = 0
 
     pessoas_det_final = 0
-    pessoas_det_final = 0
 
-    cap = cv2.VideoCapture('DAI.mp4')
+    cap = cv2.VideoCapture('HomeInvasionTest.mp4')
 
     with detection_graph.as_default():
         with tf.compat.v1.Session(graph=detection_graph) as sess:
@@ -277,7 +276,6 @@ def detectionAlg(areas_json, ip, token):
 
                 if tipo_detetado == 'person':
                     consecFrames = 0
-                    maxDetectionsBuffer += 1
 
                     # if we are not already recording, start recording
                     if not kcw.recording:
@@ -298,7 +296,12 @@ def detectionAlg(areas_json, ip, token):
                         #pessoas_det_final = numPessoasDet if numPessoasDet < pessoas_det_final else pessoas_det_final
 
                     if maxDetectionBuffer.isFull():
-                        pessoas_det_final = maxDetectionBuffer.getMaxDetectionNum()
+                        pessoas_det_final = maxDetectionBuffer.getMaxDetectionNum() if tipo_evento_json['descricao'] == "Maior" and maxDetectionBuffer.getMaxDetectionNum() > pessoas_det_final else pessoas_det_final
+                        pessoas_det_final = maxDetectionBuffer.getMaxDetectionNum() if tipo_evento_json[
+                                                                                           'descricao'] == "Menor" and maxDetectionBuffer.getMaxDetectionNum() < pessoas_det_final else pessoas_det_final
+
+                        print("Pessoas_det_final: {}.".format(pessoas_det_final))
+                        maxDetectionBuffer.clearBufferArray()
 
 
                     if tipo_evento_json['descricao'] != "" and first_detection:
@@ -442,6 +445,8 @@ def detectionAlg(areas_json, ip, token):
 
                     consecFrames = 0
 
+                    pessoas_det_final = 0
+
                 # cv2.imshow('object counting', input_frame)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
@@ -469,6 +474,8 @@ def detectionAlg(areas_json, ip, token):
                 first_detection = True
 
                 consecFrames = 0
+
+                pessoas_det_final = 0
 
                 cap.release()
                 cv2.destroyAllWindows()

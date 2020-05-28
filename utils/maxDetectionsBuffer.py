@@ -25,3 +25,6 @@ class MaxDetectionBuffer:
     def getMaxDetectionNum(self):
 
         return self.arrayMaxDetectionBuffer[0]
+
+    def clearBufferArray(self):
+        self.arrayMaxDetectionBuffer.clear()
