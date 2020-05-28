@@ -131,6 +131,9 @@ def detectionAlg(areas_json, ip, token):
     width = 0
 
     pessoas_det_final = 0
+    pessoas_det_final = 0
+
+    cap = cv2.VideoCapture('DAI.mp4')
 
     with detection_graph.as_default():
         with tf.compat.v1.Session(graph=detection_graph) as sess:
@@ -150,8 +153,10 @@ def detectionAlg(areas_json, ip, token):
 
             while True:
 
-                (rpiName, frame) = imageHub.recv_image()
-                imageHub.send_reply(b'OK')
+                #(rpiName, frame) = imageHub.recv_image()
+                #imageHub.send_reply(b'OK')
+                rpiName = "14:4f:8a:aa:22:d3"
+                ret, frame = cap.read()
 
 
                 # if a device is not in the last active dictionary then it means
@@ -465,4 +470,5 @@ def detectionAlg(areas_json, ip, token):
 
                 consecFrames = 0
 
+                cap.release()
                 cv2.destroyAllWindows()
