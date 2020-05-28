@@ -4,7 +4,7 @@ import requests
 import json
 from datetime import datetime
 
-from algoritmoAnaliseParaFicheirosVideo import detectionAlg
+from algoritmoAnalise import detectionAlg
 
 
 def main():

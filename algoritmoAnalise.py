@@ -282,9 +282,9 @@ def detectionAlg(areas_json, ip, token):
 
                         timestamp = timestamp.replace("_", ":")
 
-                    print(tipo_evento_json['descricao'])
+                    #print(tipo_evento_json['descricao'])
 
-                    print("first_detection = {}".format(first_detection))
+                    #print("first_detection = {}".format(first_detection))
 
                     #if tipo_evento_json['descricao'] == "Maior" and maxDetectionBuffer.isFull():
                         #pessoas_det_final = numPessoasDet if numPessoasDet > pessoas_det_final else pessoas_det_final
