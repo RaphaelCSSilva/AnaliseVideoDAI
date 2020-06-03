@@ -1,21 +1,14 @@
-import glob
-import os
+from datetime import datetime, timedelta
+from pytz import timezone
+import pytz
 
-import asyncio
+pt_timezone = timezone('Europe/London')
+print(pt_timezone.zone)
 
+print(datetime.now(pt_timezone).strftime("%Y-%m-%dT%H_%M_%S%z"))
+print(datetime.now().strftime("%Y-%m-%dT%H_%M_%S%z"))
 
-async def hello(test):
-    for i in range(test):
-        print(i)
+print(datetime.now(pt_timezone).strftime("%Y-%m-%dT%H_%M_%S+01:00 Europe/London"))
+print(datetime.now(pytz.UTC).strftime("%Y-%m-%dT%H_%M_%S%z"))
 
-
-async def main():
-    await hello(10)
-
-
-if __name__ == '__main__':
-    asyncio.run(main())
-
-
-def async():
-    print()
+print(datetime.utcnow().strftime("%Y-%m-%dT%H_%M_%S%z+01:00"))

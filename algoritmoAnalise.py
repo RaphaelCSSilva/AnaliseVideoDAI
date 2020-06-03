@@ -16,6 +16,7 @@ import argparse
 import datetime
 import time
 
+from pytz import timezone
 import pytz
 import requests
 import json
@@ -68,8 +69,10 @@ def detectionAlg(areas_json, ip, token):
 
     first_detection = True
 
+    pt_timezone = timezone('Europe/London')
+
     #fps = get_fps_from_camera()
-    fps = 30
+    fps = 10
 
 
     buffer = int(round(fps * args["buffer_time"]))
@@ -100,7 +103,7 @@ def detectionAlg(areas_json, ip, token):
     # when a device was last active, then store the last time the check
     # was made was now
     lastActive = {}
-    lastActiveCheck = datetime.datetime.now()
+    lastActiveCheck = datetime.datetime.now(pt_timezone)
 
     # stores the estimated number of Pis, active checking period, and
     # calculates the duration seconds to wait before making a check to
@@ -270,13 +273,13 @@ def detectionAlg(areas_json, ip, token):
 
                 #print(tipo_detetado)
 
-                if tipo_detetado == 'person':
+                if tipo_detetado == 'person' or (maxDetectionBuffer.isFull() and maxDetectionBuffer.getMaxDetectionNum() == 0):
                     consecFrames = 0
-                    maxDetectionsBuffer += 1
 
                     # if we are not already recording, start recording
                     if not kcw.recording:
-                        timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H_%M_%SZ")
+                        #timestamp = datetime.datetime.now(pt_timezone).strftime("%Y-%m-%dT%H_%M_%S+01:00 Europe/London")
+                        timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H_%M_%S%z+01:00")
                         p = "{}/{}.webm".format(output, timestamp)
                         kcw.start(p, cv2.VideoWriter_fourcc(*'VP80'), fps)
 
@@ -377,8 +380,6 @@ def detectionAlg(areas_json, ip, token):
                                 response = requests.post(url_eventos, data=dataToSend, headers=headersPost).json()
 
                                 first_detection = False
-                else:
-                    maxDetectionsBuffer = 0
 
                 # update the new frame in the frame dictionary
                 #frameDict[rpiName] = frame
@@ -422,7 +423,8 @@ def detectionAlg(areas_json, ip, token):
                 if kcw.recording and consecFrames == buffer:
                     kcw.finish()
                     print("TesteFinish")
-                    novaDataHoraFim = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+                    #novaDataHoraFim = datetime.datetime.now(pt_timezone).strftime("%Y-%m-%dT%H:%M:%S+01:00 Europe/London")
+                    novaDataHoraFim = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S%z+01:00")
                     response['dataHoraFim'] = novaDataHoraFim
 
                     response['descricao'] = "Detetou-se " + str(
@@ -453,7 +455,8 @@ def detectionAlg(areas_json, ip, token):
             if kcw.recording:
                 kcw.finish()
                 print("TesteFinish")
-                novaDataHoraFim = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+                #novaDataHoraFim = datetime.datetime.now(pt_timezone).strftime("%Y-%m-%dT%H:%M:%S+01:00 Europe/London")
+                novaDataHoraFim = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S%z+01:00")
                 response['dataHoraFim'] = novaDataHoraFim
                 response['numPessoasDet'] = pessoas_det_final
                 response['descricao'] = "Detetou-se " + str(

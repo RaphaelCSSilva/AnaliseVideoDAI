@@ -279,7 +279,7 @@ def detectionAlg(areas_json, ip, token):
 
                     # if we are not already recording, start recording
                     if not kcw.recording:
-                        timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H_%M_%SZ")
+                        timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H_%M_%S%z+01:00")
                         p = "{}/{}.webm".format(output, timestamp)
                         kcw.start(p, cv2.VideoWriter_fourcc(*'VP80'), fps)
 
@@ -379,8 +379,6 @@ def detectionAlg(areas_json, ip, token):
                                 response = requests.post(url_eventos, data=dataToSend, headers=headersPost).json()
 
                                 first_detection = False
-                else:
-                    maxDetectionsBuffer = 0
 
                 # update the new frame in the frame dictionary
                 #frameDict[rpiName] = frame
@@ -424,12 +422,17 @@ def detectionAlg(areas_json, ip, token):
                 if kcw.recording and consecFrames == buffer:
                     kcw.finish()
                     print("TesteFinish")
-                    novaDataHoraFim = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+                    novaDataHoraFim = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S%z+01:00")
                     response['dataHoraFim'] = novaDataHoraFim
 
-                    response['descricao'] = "Detetou-se " + str(
-                                    pessoas_det_final) + " pessoa(s), quando o maximo e de " + str(
-                                    numPessoasPerm) + ' pessoa(s).'
+                    if response['tipoevento'] == "Maior":
+                        response['descricao'] = "Detetou-se " + str(
+                                        pessoas_det_final) + " pessoa(s), quando o maximo e de " + str(
+                                        numPessoasPerm) + ' pessoa(s).'
+                    else:
+                        response['descricao'] = "Detetou-se " + str(
+                            pessoas_det_final) + " pessoa(s), quando o minimo e de " + str(
+                            numPessoasPerm) + ' pessoa(s).'
                     
                     response['numPessoasDet'] = pessoas_det_final 
 
@@ -455,12 +458,17 @@ def detectionAlg(areas_json, ip, token):
             if kcw.recording:
                 kcw.finish()
                 print("TesteFinish")
-                novaDataHoraFim = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+                novaDataHoraFim = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S%z+01:00")
                 response['dataHoraFim'] = novaDataHoraFim
                 response['numPessoasDet'] = pessoas_det_final
-                response['descricao'] = "Detetou-se " + str(
-                    pessoas_det_final) + " pessoa(s), quando o maximo e de " + str(
-                    numPessoasPerm) + ' pessoa(s).'
+                if response['tipoevento'] == "Maior":
+                    response['descricao'] = "Detetou-se " + str(
+                        pessoas_det_final) + " pessoa(s), quando o maximo e de " + str(
+                        numPessoasPerm) + ' pessoa(s).'
+                else:
+                    response['descricao'] = "Detetou-se " + str(
+                        pessoas_det_final) + " pessoa(s), quando o minimo e de " + str(
+                        numPessoasPerm) + ' pessoa(s).'
                 response['descricao'] += ' Este evento terminou de forma inesperada! (Erro)'
 
                 #dataToSend = json.dumps(response)
